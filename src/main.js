@@ -6,13 +6,15 @@ import goods from 'components/goods/goods';
 import ratings from 'components/ratings/ratings';
 import seller from 'components/seller/seller';
 import payment from 'components/payment';
+import paymentById from 'components/payment/paymentById';
 import orderList from 'components/order/list';
 import orderDetail from 'components/order/detail';
-
+import vuePayKeyboard from 'vue-pay-keyboard'
 
 import 'common/stylus/index.styl';
 
 Vue.use(VueRouter);
+Vue.use(vuePayKeyboard);
 Vue.use(VueResource);
 Vue.http.options.emulateJSON = true;
 
@@ -37,7 +39,12 @@ const routes = [{
 }, {
     path: '/order/:orderId',
     component: orderDetail
-}];
+},
+  {
+    path: '/payment/:orderId',
+    component: paymentById
+  }
+];
 
 const router = new VueRouter({
   linkActiveClass: 'active',

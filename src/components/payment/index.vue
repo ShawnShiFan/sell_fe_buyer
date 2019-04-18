@@ -1,25 +1,50 @@
 <template>
 	<div class="payment">
-	  <div class="user-info">
+	  <div class="user-info" >
 			<div class="item"><label class="label">联系人</label><input placeholder="姓名" class="input" v-model="name" type="text"></div>
 			<div class="item"><label>联系电话</label><input placeholder="你的手机号" v-model="phone" type="text"></div>
 			<div class="item"><label>送餐地址</label><input placeholder="送餐地址" v-model="address" type="text"></div>
 		</div>
-		<div class="food-info">
+		<div class="food-info"  v-if="!show">
 			<div class="card-hd"><img  class="avator" :src="seller.avatar"><span class="title">{{seller.name}}</span></div>
 
-			<div v-for="item in selectedGoods" class="food-item">
+			<div v-for="item in selectedGoods" class="food-item" >
 				<label>{{item.name}}</label>
 				<div class="mount"><span class="number" v-if="item.count > 1">x{{item.count}}</span>¥{{item.count * item.price}}</div>
 			</div>
 		</div>
-		<div class="footer">
+		<div class="footer"   v-if="!show">
 			<div class="money">待支付¥{{this.allPay}}</div>
 			<div class="btn-pay" @click="pay">支付</div>
 		</div>
+
+
+<!--    <vpay ref="pays"
+          v-model="show"
+          @close="close"
+          @forget="forget"
+          @input-end="inputEnd"
+    ></vpay>-->
+
+    <vue-pay-keyboard
+      ref="pay"
+      :is-pay='show'
+      @pas-end='pasEnd'
+      @close='pasClose'>
+      <!-- 自定义支付动画 -->
+      <div slot="loading-ani">
+        <svg></svg>
+      </div>
+    </vue-pay-keyboard>
+
+
 	</div>
+
+
 </template>
 <script >
+
+
     var config = require('config')
     config = process.env.NODE_ENV === 'development' ? config.dev : config.build
 	export default {
@@ -27,9 +52,11 @@
 			return {
 				selectedGoods: [],
 				seller: {},
-				name: '师兄',
-				phone: '18868877111',
-				address: '慕课网大楼'
+				name: '',
+				phone: '',
+				address: '',
+        show:false,
+        orderId:''
 			};
 		},
 		computed: {
@@ -51,6 +78,7 @@
 				const goods = this.selectedGoods.map(good => {
                     return {productId: good.id, productQuantity: good.count}
                 });
+
                 const ERR_OK = 0;
                 this.$http.post("/sell/buyer/order/create", {
                     'openid': getCookie('openid'),
@@ -61,10 +89,12 @@
                 ).then((respones) => {
                     respones = respones.body;
                     if (respones.code == ERR_OK) {
-                      location.href = config.wechatPayUrl +
+                      /*location.href = config.wechatPayUrl +
                         '?openid=' + getCookie('openid') +
                         '&orderId=' + respones.data.orderId +
-                        '&returnUrl=' + encodeURIComponent(config.sellUrl + '/#/order/' + respones.data.orderId);
+                        '&returnUrl=' + encodeURIComponent(config.sellUrl + '/#/order/' + respones.data.orderId);*/
+                      this.orderId=respones.data.orderId;
+                      this.show=true;
                     }else {
                       alert(respones.msg);
                     }
@@ -72,8 +102,39 @@
 
                 window.selectedGoods = '[]';
                 // 支付成功清空localstorage selectedGoods
-			}
-		}
+			},
+
+        pasEnd(val) {
+          console.log(val);  //得到密码 可能会进行一些加密动作
+          setTimeout(() => { // 模拟请求接口验证密码中 ..
+            if (val === '111111') { // 密码正确
+              this.$http.post("/sell/pay/create?orderId="+this.orderId
+              ).then((respones) => {
+
+                if (respones.status == 200) {
+                 var orderId=this.orderId;
+                  this.$router.push({
+                    path:`/order/${orderId}`
+                  });
+                }else {
+                  alert(respones.msg);
+                }
+              });
+              this.$refs.pay.$payStatus(true) // 拿到子组件的事件
+            } else {
+              this.$refs.pay.$payStatus(false)
+            }
+          }, 1000)
+        },
+      pasClose()
+      {
+        const orderId=this.orderId;
+        this.$router.push({
+          path:`/order/${orderId}`
+        });
+      }
+		},
+
 	};
   function getCookie(name) {
     var arr;

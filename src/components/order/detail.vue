@@ -143,10 +143,16 @@
                 });
             },
             pay: function (orderId) {
-                location.href = config.wechatPayUrl +
+               /* location.href = config.wechatPayUrl +
                     '?openid=' + getCookie('openid') +
                     '&orderId=' + orderId +
-                    '&returnUrl=' + encodeURIComponent(config.sellUrl + '/#/order/' + orderId);
+                    '&returnUrl=' + encodeURIComponent(config.sellUrl + '/#/order/' + orderId);*/
+              this.$router.push({
+                path:`/payment/${orderId}`
+              });
+
+
+
             }
         }
     }
