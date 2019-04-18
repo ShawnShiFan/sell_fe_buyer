@@ -1,8 +1,8 @@
 {
   "name": "sell",
-  "version": "1.0.0",
-  "description": "sell app",
-  "author": "ustbhuangyi <280309453@qq.com>",
+  "version": "2.0.0",
+  "description": "buyer",
+  "author": "shawn_shifan@163.com",
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",
